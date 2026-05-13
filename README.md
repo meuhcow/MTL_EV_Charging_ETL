@@ -15,6 +15,7 @@ This project demonstrates practical ETL work with open civic data:
 - SQL analytics with DuckDB
 - Optional Airflow orchestration stub
 - Cloud-ready raw/processed/analytics zone design
+- Streamlit dashboard for station exploration
 
 Dataset: [Bornes de recharge publiques pour voitures electriques](https://donnees.montreal.ca/dataset/bornes-recharge-publiques), Ville de Montreal open data.
 
@@ -47,13 +48,15 @@ source .venv/bin/activate
 pip install -r requirements.txt
 make pipeline
 make analytics
+make dashboard
 ```
 
 If you do not want to use `make`, run:
 
 ```bash
 python -m src.run_pipeline
-duckdb data/analytics/ev_charging.duckdb < sql/analytics_queries.sql
+python -m src.run_analytics
+python -m streamlit run dashboard/app.py
 ```
 
 ## Outputs
@@ -65,6 +68,23 @@ After the pipeline runs:
 - `data/analytics/ev_charging.duckdb`: SQL analytics database
 - `reports/data_quality_report.json`: validation results
 - `reports/analytics_summary.csv`: portfolio-friendly summary metrics
+
+## Dashboard
+
+Run the dashboard locally:
+
+```bash
+make dashboard
+```
+
+The Streamlit app includes:
+
+- KPI cards for station count, site count, fast chargers, and on-street share
+- filters for charging level, placement type, and pricing mode
+- map of charging station locations
+- charts for network mix
+- top site and station-level table
+
 
 ## Example questions
 
@@ -83,6 +103,7 @@ After the pipeline runs:
 │   ├── raw/
 │   ├── processed/
 │   └── analytics/
+├── dashboard/app.py
 ├── docs/
 │   ├── architecture.md
 │   └── aws_design.md
@@ -106,4 +127,4 @@ After the pipeline runs:
 - Add dbt models on top of DuckDB or PostgreSQL.
 - Deploy raw and processed zones to S3.
 - Run the pipeline with Airflow on a schedule.
-- Add a Streamlit map dashboard.
+- Add a deployment target for the Streamlit dashboard.
