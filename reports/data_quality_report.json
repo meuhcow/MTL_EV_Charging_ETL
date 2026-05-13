@@ -1,0 +1,9 @@
+{
+  "row_count": 2299,
+  "missing_columns": [],
+  "duplicate_station_ids": 0,
+  "null_station_ids": 0,
+  "invalid_latitudes": 0,
+  "invalid_longitudes": 0,
+  "passed": true
+}

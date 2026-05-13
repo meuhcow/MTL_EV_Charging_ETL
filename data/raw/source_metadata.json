@@ -1,0 +1,17 @@
+{
+  "dataset": "Ville de Montreal public EV charging stations",
+  "resources": [
+    {
+      "url": "https://donnees.montreal.ca/dataset/c999d1a9-8333-4871-9226-7d3a53f490a6/resource/98ef3ed6-56ca-4d5e-a213-fd72066b18b5/download/bornes-recharge-publiques.csv",
+      "path": "/Users/meuh_cow/Documents/New project 4/data/raw/bornes_recharge_publiques.csv",
+      "bytes": 366370,
+      "downloaded_at_utc": "2026-05-13T18:20:01.838222+00:00"
+    },
+    {
+      "url": "https://donnees.montreal.ca/dataset/c999d1a9-8333-4871-9226-7d3a53f490a6/resource/b502cee9-ff87-44fa-9a8e-722285202b0d/download/bornes-recharge-publiques.geojson",
+      "path": "/Users/meuh_cow/Documents/New project 4/data/raw/bornes_recharge_publiques.geojson",
+      "bytes": 1048963,
+      "downloaded_at_utc": "2026-05-13T18:20:04.010621+00:00"
+    }
+  ]
+}
