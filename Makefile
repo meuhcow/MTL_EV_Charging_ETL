@@ -1,4 +1,4 @@
-.PHONY: pipeline analytics clean
+.PHONY: pipeline analytics dashboard clean
 
 PYTHON ?= .venv/bin/python
 
@@ -7,6 +7,9 @@ pipeline:
 
 analytics:
 	$(PYTHON) -m src.run_analytics
+
+dashboard:
+	$(PYTHON) -m streamlit run dashboard/app.py
 
 clean:
 	rm -f data/raw/bornes_recharge_publiques.csv
