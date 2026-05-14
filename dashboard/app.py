@@ -3,9 +3,10 @@ from __future__ import annotations
 from pathlib import Path
 
 import altair as alt
+import folium
 import pandas as pd
-import pydeck as pdk
 import streamlit as st
+from streamlit_folium import st_folium
 
 
 BASE_DIR = Path(__file__).resolve().parents[1]
@@ -39,6 +40,13 @@ st.markdown(
 
     [data-testid="stHeader"] {
         background: transparent;
+    }
+
+    [data-testid="stMainBlockContainer"] {
+        max-width: 1380px;
+        padding-top: 2rem;
+        padding-left: 2.5rem;
+        padding-right: 2.5rem;
     }
 
     [data-testid="stToolbar"],
@@ -93,6 +101,11 @@ st.markdown(
         border-radius: 8px;
         box-shadow: 0 14px 40px rgba(32, 64, 86, 0.06);
         background: var(--panel);
+    }
+
+    [data-testid="stVegaLiteChart"] {
+        background: #ffffff;
+        border-radius: 8px;
     }
 
     h1, h2, h3 {
@@ -172,39 +185,129 @@ st.markdown(
         line-height: 1.55;
     }
 
-    .mock-panel {
+    .ev-scene {
         position: absolute;
-        right: 42px;
-        bottom: -8px;
+        right: 56px;
+        bottom: 30px;
         z-index: 3;
-        width: 330px;
-        padding: 18px;
-        border-radius: 8px;
-        background: rgba(255, 255, 255, 0.93);
-        box-shadow: 0 18px 40px rgba(23, 32, 51, 0.18);
+        width: 450px;
+        height: 170px;
     }
 
-    .mock-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-        margin-bottom: 12px;
+    .ev-road {
+        position: absolute;
+        left: 12px;
+        right: 8px;
+        bottom: 4px;
+        height: 12px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.38);
     }
 
-    .mock-card {
-        height: 50px;
-        border-radius: 8px;
-        background: #f7fbfd;
-        border: 1px solid #e5eef6;
+    .ev-car {
+        position: absolute;
+        left: 18px;
+        bottom: 32px;
+        width: 288px;
+        height: 74px;
+        border-radius: 48px 72px 30px 30px;
+        background: rgba(255, 255, 255, 0.94);
+        box-shadow: 0 18px 38px rgba(23, 32, 51, 0.16);
     }
 
-    .mock-chart {
-        height: 86px;
+    .ev-car::before {
+        content: "";
+        position: absolute;
+        left: 88px;
+        top: -42px;
+        width: 142px;
+        height: 58px;
+        border-radius: 80px 88px 10px 10px;
+        background: rgba(255, 255, 255, 0.88);
+        box-shadow: inset -48px 0 0 rgba(49, 205, 189, 0.14);
+    }
+
+    .ev-car::after {
+        content: "";
+        position: absolute;
+        right: 90px;
+        top: 28px;
+        width: 44px;
+        height: 26px;
+        border-radius: 7px;
+        background: rgba(49, 205, 189, 0.16);
+    }
+
+    .ev-wheel {
+        position: absolute;
+        bottom: -11px;
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        background: #172033;
+        border: 9px solid rgba(231, 241, 247, 0.95);
+    }
+
+    .ev-wheel.left {
+        left: 58px;
+    }
+
+    .ev-wheel.right {
+        right: 56px;
+    }
+
+    .ev-port {
+        position: absolute;
+        right: 22px;
+        top: 27px;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: #172033;
+        box-shadow: 0 0 0 5px rgba(49, 205, 189, 0.16);
+    }
+
+    .ev-charger {
+        position: absolute;
+        right: 18px;
+        bottom: 26px;
+        width: 72px;
+        height: 128px;
+        border-radius: 16px;
+        background: rgba(23, 32, 51, 0.92);
+        box-shadow: 0 18px 38px rgba(23, 32, 51, 0.18);
+    }
+
+    .ev-charger::before {
+        content: "";
+        position: absolute;
+        left: 17px;
+        top: 18px;
+        width: 38px;
+        height: 28px;
         border-radius: 8px;
-        background:
-            linear-gradient(180deg, rgba(29, 169, 156, 0.22), rgba(29, 169, 156, 0.04)),
-            repeating-linear-gradient(0deg, transparent 0, transparent 19px, #d9e7ef 20px);
-        border: 1px solid #dce9f1;
+        background: rgba(49, 205, 189, 0.95);
+    }
+
+    .ev-charger::after {
+        content: "EV";
+        position: absolute;
+        left: 18px;
+        top: 62px;
+        color: #ffffff;
+        font-weight: 800;
+        font-size: 18px;
+    }
+
+    .ev-cable {
+        position: absolute;
+        right: 88px;
+        bottom: 80px;
+        width: 84px;
+        height: 42px;
+        border-bottom: 8px solid rgba(23, 32, 51, 0.82);
+        border-right: 8px solid rgba(23, 32, 51, 0.82);
+        border-radius: 0 0 44px 0;
     }
 
     .section-title {
@@ -221,8 +324,37 @@ st.markdown(
         margin-bottom: 12px;
     }
 
+    .pricing-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+        margin-top: 4px;
+    }
+
+    .pricing-card {
+        background: #ffffff;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 18px;
+        box-shadow: 0 14px 36px rgba(32, 64, 86, 0.06);
+    }
+
+    .pricing-label {
+        color: var(--muted);
+        font-size: 14px;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+
+    .pricing-value {
+        color: var(--ink);
+        font-size: 30px;
+        line-height: 1;
+        font-weight: 850;
+    }
+
     @media (max-width: 1100px) {
-        .mock-panel {
+        .ev-scene {
             display: none;
         }
         .hero::after {
@@ -230,6 +362,9 @@ st.markdown(
         }
         .hero h1 {
             font-size: 34px;
+        }
+        .pricing-grid {
+            grid-template-columns: 1fr;
         }
     }
     </style>
@@ -245,27 +380,90 @@ def load_data() -> pd.DataFrame:
         st.stop()
     df = pd.read_parquet(PARQUET_PATH)
     for column in ["charging_level", "placement_type", "pricing_mode"]:
-        df[column] = df[column].fillna("Unknown")
+        df[column] = df[column].fillna("Not specified")
+    df["charging_level_label"] = df["charging_level"].map(format_label)
+    df["placement_type_label"] = df["placement_type"].map(format_label)
+    df["pricing_mode_label"] = df["pricing_mode"].map(format_label)
     return df
+
+
+def format_label(value: object) -> str:
+    if pd.isna(value):
+        return "Not specified"
+    text = str(value).strip()
+    if not text:
+        return "Not specified"
+    if text.upper() == "BRCC":
+        return "BRCC"
+    return text[:1].upper() + text[1:]
 
 
 def format_percent(value: float) -> str:
     return f"{value:.1%}"
 
 
-def bar_chart(data: pd.DataFrame, x: str, y: str, color: str) -> alt.Chart:
+def bar_chart(data: pd.DataFrame, x: str, y: str, color: str, height: int = 210) -> alt.Chart:
     return (
         alt.Chart(data)
         .mark_bar(cornerRadiusTopLeft=6, cornerRadiusTopRight=6, color=color)
         .encode(
             x=alt.X(f"{x}:N", title=None, sort="-y", axis=alt.Axis(labelAngle=0)),
             y=alt.Y(f"{y}:Q", title=None),
-            tooltip=[x, y],
+            tooltip=[
+                alt.Tooltip(f"{x}:N", title="Category"),
+                alt.Tooltip(f"{y}:Q", title="Stations", format=","),
+            ],
         )
-        .properties(height=220)
+        .properties(height=height, background="#ffffff")
         .configure_view(strokeWidth=0)
-        .configure_axis(gridColor="#edf2f7", labelColor="#718096", tickColor="#edf2f7")
+        .configure_axis(
+            domain=False,
+            gridColor="#edf2f7",
+            labelColor="#718096",
+            tickColor="#edf2f7",
+            titleColor="#718096",
+        )
     )
+
+
+def station_scatter(data: pd.DataFrame) -> alt.Chart:
+    return (
+        alt.Chart(data)
+        .mark_circle(size=42, color="#31cdbd", opacity=0.72)
+        .encode(
+            x=alt.X("longitude:Q", title=None, scale=alt.Scale(zero=False), axis=None),
+            y=alt.Y("latitude:Q", title=None, scale=alt.Scale(zero=False), axis=None),
+            tooltip=[
+                alt.Tooltip("station_id:N", title="Station"),
+                alt.Tooltip("site_name:N", title="Site"),
+                alt.Tooltip("charging_level_label:N", title="Charging level"),
+                alt.Tooltip("placement_type_label:N", title="Placement type"),
+            ],
+        )
+        .properties(height=390, background="#f8fbff")
+        .configure_view(stroke="#e9eef5", strokeWidth=1)
+    )
+
+
+def build_station_map(data: pd.DataFrame) -> folium.Map:
+    station_map = folium.Map(
+        location=[45.52, -73.62],
+        zoom_start=10,
+        tiles="CartoDB positron",
+        control_scale=False,
+    )
+    for row in data.itertuples(index=False):
+        folium.CircleMarker(
+            location=[row.latitude, row.longitude],
+            radius=3,
+            color="#1da99c",
+            fill=True,
+            fill_color="#31cdbd",
+            fill_opacity=0.72,
+            weight=1,
+            tooltip=f"{row.station_id} | {row.charging_level_label}",
+        ).add_to(station_map)
+    return station_map
 
 
 df = load_data()
@@ -273,9 +471,9 @@ df = load_data()
 with st.sidebar:
     st.markdown("## Dashboard Controls")
     st.markdown("#### Filters")
-    charging_levels = sorted(df["charging_level"].dropna().unique())
-    placement_types = sorted(df["placement_type"].dropna().unique())
-    pricing_modes = sorted(df["pricing_mode"].dropna().unique())
+    charging_levels = sorted(df["charging_level_label"].dropna().unique())
+    placement_types = sorted(df["placement_type_label"].dropna().unique())
+    pricing_modes = sorted(df["pricing_mode_label"].dropna().unique())
 
     selected_levels = st.multiselect(
         "Charging level",
@@ -295,9 +493,9 @@ with st.sidebar:
     min_site_count = st.slider("Minimum chargers per site", 1, 20, 1)
 
 filtered = df[
-    df["charging_level"].isin(selected_levels)
-    & df["placement_type"].isin(selected_placements)
-    & df["pricing_mode"].isin(selected_pricing)
+    df["charging_level_label"].isin(selected_levels)
+    & df["placement_type_label"].isin(selected_placements)
+    & df["pricing_mode_label"].isin(selected_pricing)
 ].copy()
 
 site_summary = (
@@ -309,8 +507,11 @@ site_summary = (
             "city",
             "province",
             "charging_level",
+            "charging_level_label",
             "pricing_mode",
+            "pricing_mode_label",
             "placement_type",
+            "placement_type_label",
             "is_on_street",
         ],
         dropna=False,
@@ -326,7 +527,7 @@ site_summary = site_summary[site_summary["station_count"] >= min_site_count]
 
 total_stations = len(filtered)
 total_sites = site_summary["site_name"].nunique()
-fast_chargers = int((filtered["charging_level"] == "BRCC").sum())
+fast_chargers = int((filtered["charging_level_label"] == "BRCC").sum())
 on_street = int(filtered["is_on_street"].sum())
 on_street_share = on_street / total_stations if total_stations else 0
 
@@ -338,12 +539,15 @@ st.markdown(
             <h1>EV Charging Network</h1>
             <p>Public charging infrastructure across Montreal.</p>
         </div>
-        <div class="mock-panel">
-            <div class="mock-row">
-                <div class="mock-card"></div>
-                <div class="mock-card"></div>
+        <div class="ev-scene">
+            <div class="ev-road"></div>
+            <div class="ev-cable"></div>
+            <div class="ev-car">
+                <div class="ev-port"></div>
+                <div class="ev-wheel left"></div>
+                <div class="ev-wheel right"></div>
             </div>
-            <div class="mock-chart"></div>
+            <div class="ev-charger"></div>
         </div>
     </div>
     """,
@@ -358,81 +562,111 @@ metric_cols[3].metric("On-street share", format_percent(on_street_share))
 
 st.write("")
 
-left_col, right_col = st.columns([1.2, 0.8], gap="large")
+left_col, right_col = st.columns([1, 1], gap="large")
 
 with left_col:
     with st.container(border=True):
         st.markdown('<div class="section-title">Charging Stations Map</div>', unsafe_allow_html=True)
-        map_df = filtered[["latitude", "longitude", "station_id", "site_name", "charging_level"]].dropna()
-        layer = pdk.Layer(
-            "ScatterplotLayer",
-            data=map_df,
-            get_position="[longitude, latitude]",
-            get_fill_color="[49, 205, 189, 180]",
-            get_radius=70,
-            pickable=True,
+        st.markdown(
+            '<div class="subtle">Street map of public charging station locations across Greater Montreal.</div>',
+            unsafe_allow_html=True,
         )
-        view_state = pdk.ViewState(latitude=45.52, longitude=-73.62, zoom=9.6, pitch=0)
-        st.pydeck_chart(
-            pdk.Deck(
-                map_style="light",
-                initial_view_state=view_state,
-                layers=[layer],
-                tooltip={"text": "{station_id}\\n{site_name}\\n{charging_level}"},
-            ),
-            height=430,
+        map_df = filtered[
+            [
+                "latitude",
+                "longitude",
+                "station_id",
+                "site_name",
+                "charging_level_label",
+                "placement_type_label",
+            ]
+        ].dropna()
+        st_folium(
+            build_station_map(map_df),
+            height=390,
+            width=None,
+            returned_objects=[],
         )
 
 with right_col:
     with st.container(border=True):
         st.markdown('<div class="section-title">Network Mix</div>', unsafe_allow_html=True)
         level_counts = (
-            filtered["charging_level"]
+            filtered["charging_level_label"]
             .value_counts()
             .rename_axis("charging_level")
             .reset_index(name="station_count")
         )
         st.altair_chart(
-            bar_chart(level_counts, "charging_level", "station_count", "#31cdbd"),
+            bar_chart(level_counts, "charging_level", "station_count", "#31cdbd", height=170),
             width="stretch",
         )
 
         placement_counts = (
-            filtered["placement_type"]
+            filtered["placement_type_label"]
             .value_counts()
             .rename_axis("placement_type")
             .reset_index(name="station_count")
         )
         st.altair_chart(
-            bar_chart(placement_counts, "placement_type", "station_count", "#172033"),
+            bar_chart(placement_counts, "placement_type", "station_count", "#172033", height=170),
             width="stretch",
         )
 
-top_left, top_right = st.columns([1.35, 0.65], gap="large")
+pricing_counts = (
+    filtered["pricing_mode_label"]
+    .value_counts()
+    .rename_axis("pricing_mode")
+    .reset_index(name="station_count")
+)
 
-with top_left:
-    with st.container(border=True):
-        st.markdown('<div class="section-title">Top Charging Sites</div>', unsafe_allow_html=True)
-        top_sites = site_summary.sort_values(["station_count", "site_name"], ascending=[False, True]).head(15)
-        st.dataframe(
-            top_sites[["site_name", "address", "charging_level", "placement_type", "station_count"]],
-            width="stretch",
-            hide_index=True,
-        )
+with st.container(border=True):
+    st.markdown('<div class="section-title">Pricing Modes</div>', unsafe_allow_html=True)
+    pricing_cols = st.columns(3)
+    for index, row in enumerate(pricing_counts.itertuples(index=False)):
+        with pricing_cols[index % 3]:
+            st.metric(row.pricing_mode, f"{row.station_count:,}")
 
-with top_right:
-    with st.container(border=True):
-        st.markdown('<div class="section-title">Pricing Modes</div>', unsafe_allow_html=True)
-        pricing_counts = (
-            filtered["pricing_mode"]
-            .value_counts()
-            .rename_axis("pricing_mode")
-            .reset_index(name="station_count")
-        )
-        st.dataframe(pricing_counts, width="stretch", hide_index=True)
+with st.container(border=True):
+    st.markdown('<div class="section-title">Top Charging Sites</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="subtle">Sites with the largest number of public chargers.</div>',
+        unsafe_allow_html=True,
+    )
+    top_sites = site_summary.sort_values(["station_count", "site_name"], ascending=[False, True]).head(10)
+    st.dataframe(
+        top_sites[
+            [
+                "site_name",
+                "address",
+                "charging_level_label",
+                "station_count",
+            ]
+        ].rename(
+            columns={
+                "site_name": "Site",
+                "address": "Address",
+                "charging_level_label": "Charging level",
+                "station_count": "Stations",
+            }
+        ),
+        column_config={
+            "Site": st.column_config.TextColumn(width="medium"),
+            "Address": st.column_config.TextColumn(width="large"),
+            "Charging level": st.column_config.TextColumn(width="small"),
+            "Stations": st.column_config.NumberColumn(width="small"),
+        },
+        height=388,
+        width="stretch",
+        hide_index=True,
+    )
 
 with st.container(border=True):
     st.markdown('<div class="section-title">Station-Level Data</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="subtle">Searchable station-level table for detailed review.</div>',
+        unsafe_allow_html=True,
+    )
     st.dataframe(
         filtered[
             [
@@ -440,13 +674,37 @@ with st.container(border=True):
                 "site_name",
                 "address",
                 "city",
-                "charging_level",
-                "pricing_mode",
-                "placement_type",
+                "charging_level_label",
+                "pricing_mode_label",
+                "placement_type_label",
                 "latitude",
                 "longitude",
             ]
-        ],
+        ].rename(
+            columns={
+                "station_id": "Station",
+                "site_name": "Site",
+                "address": "Address",
+                "city": "City",
+                "charging_level_label": "Charging level",
+                "pricing_mode_label": "Pricing mode",
+                "placement_type_label": "Placement type",
+                "latitude": "Latitude",
+                "longitude": "Longitude",
+            }
+        ),
+        column_config={
+            "Station": st.column_config.TextColumn(width="small"),
+            "Site": st.column_config.TextColumn(width="large"),
+            "Address": st.column_config.TextColumn(width="large"),
+            "City": st.column_config.TextColumn(width="small"),
+            "Charging level": st.column_config.TextColumn(width="small"),
+            "Pricing mode": st.column_config.TextColumn(width="small"),
+            "Placement type": st.column_config.TextColumn(width="small"),
+            "Latitude": st.column_config.NumberColumn(width="small", format="%.5f"),
+            "Longitude": st.column_config.NumberColumn(width="small", format="%.5f"),
+        },
+        height=430,
         width="stretch",
         hide_index=True,
     )
